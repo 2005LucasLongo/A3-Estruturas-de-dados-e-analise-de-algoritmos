@@ -1,112 +1,83 @@
+from itertools import permutations
 from random import randint
 
 CIDADES = ['Belém', 'Recife', 'Brasília', 'São Paulo', 'Florianópolis']
 
-class cliente:
-    def __init__ (self, cidade):
+class Cliente:
+    def __init__(self, cidade):
         self.cidade = cidade
 
-DISTANCIAS = [ # em km
+# Matriz de distâncias (em km)
+DISTANCIAS = [
     # Belém
-    [
-        0, # Belém-Belém
-        2039, # Belém-Recife
-        1889, # Belém-Brasília
-        2804, # Belém-SP
-        3478 # Belém-Florianópolis
-    ],
-    
+    [0, 2039, 1889, 2804, 3478],
     # Recife
-    [
-        2039, # Recife-Belém
-        0, # Recife-Recife
-        2120, # Recife-Brasília
-        2662, # Recife-SP
-        3350 # Recife-Florianópolis
-    ],
-    
+    [2039,  0, 2120, 2662, 3350],
     # Brasília
-    [
-        1889, # Brasília-Belém
-        2120, # Brasília-Recife
-        0, # Brasília-Brasília
-        1008, # Brasília-SP
-        1682 # Brasília-Florianópolis
-    ],
-    
-    # SP
-    [
-        2804, # SP-Belém
-        2662, # SP-Recife
-        1008, # SP-Brasília
-        0, # SP-SP
-        697 # SP-Florianópolis
-    ],
-    
+    [1889,  2120, 0, 1008, 1682],
+    # São Paulo
+    [2804,  2662, 1008, 0, 697],
     # Florianópolis
-    [
-        3478, # Florianópolis-Belém
-        3350, # Florianópolis-Recife
-        1682, # Florianópolis-Brasília
-        697, # Florianópolis-SP
-        0 # Florianópolis-Florianópolis
-    ]
+    [3478,  3350, 1682, 697, 0]
 ]
 
 def gerarListaDeClientes(quantidadeClientes):
+    """Gera uma lista aleatória de clientes, cada um com uma cidade."""
     clientes = []
-    for i in range(quantidadeClientes):
-        clientes.append(cliente(CIDADES[randint(0, 4)]))
+    for _ in range(quantidadeClientes):
+        clientes.append(Cliente(CIDADES[randint(0, len(CIDADES)-1)]))
     return clientes
 
 def listarCidadesComClientes(lista_clientes):
+    """Retorna uma lista de cidades com clientes (sem repetições)."""
     cidades = []
     for cliente in lista_clientes:
         cidades.append(cliente.cidade)
-    cidades = list(dict.fromkeys(cidades))
-    return cidades
+    # Remove duplicatas mantendo a ordem
+    return list(dict.fromkeys(cidades))
 
-def obterCidadeComClientesMaisProximaDaAtual (cidade_atual, cidades_com_clientes):
-    try:
-        cidades_com_clientes.remove(cidade_atual)
-    except:
-        pass
-    index_cidade_mais_proxima = CIDADES.index(cidades_com_clientes[0])
-    index_cidade_atual = CIDADES.index(cidade_atual)
-    
-    # obtem os indexes das cidades com clientes
-    cidades_com_clientes_indexes = []
-    for cidade in cidades_com_clientes:
-        cidades_com_clientes_indexes.append(CIDADES.index(cidade))
-    
-    # calcula qual a cidade mais próxima
-    for index_cidade in cidades_com_clientes_indexes:
-        if DISTANCIAS[index_cidade_atual][index_cidade] < DISTANCIAS[index_cidade_atual][index_cidade_mais_proxima]:
-            index_cidade_mais_proxima = index_cidade
-    
-    return CIDADES[index_cidade_mais_proxima]
-    
+def calcular_distancia(rota):
+    """Calcula a distância total percorrida numa rota (lista de cidades)."""
+    total = 0
+    for i in range(len(rota)-1):
+        origem = CIDADES.index(rota[i])
+        destino = CIDADES.index(rota[i+1])
+        total += DISTANCIAS[origem][destino]
+    return total
 
-# sample
+def encontrar_rota_otima(cidade_inicial, cidades_com_clientes):
+    """
+    Encontra a rota ótima (com menor distância total) que parte da cidade_inicial
+    e passa por todas as cidades com clientes.
+    """
+    # Se a cidade de partida estiver na lista, remova-a
+    cidades_disponiveis = [cidade for cidade in cidades_com_clientes if cidade != cidade_inicial]
+    
+    melhor_rota = None
+    melhor_distancia = float('inf')
+    
+    # Gera todas as permutações possíveis das cidades restantes
+    for perm in permutations(cidades_disponiveis):
+        rota = [cidade_inicial] + list(perm)
+        dist = calcular_distancia(rota)
+        if dist < melhor_distancia:
+            melhor_distancia = dist
+            melhor_rota = rota
+            
+    return melhor_rota, melhor_distancia
 
-LISTA_CLIENTES = gerarListaDeClientes(10)
+# Exemplo de uso
+
+# Gera um lista de clientes aleatórios e extrai as cidades onde há clientes
+LISTA_CLIENTES = gerarListaDeClientes(randint(1,10))
 cidades_com_clientes = listarCidadesComClientes(LISTA_CLIENTES)
-QUANTIA_CIDADES = len(cidades_com_clientes)
-CIDADE_INICIAL = CIDADES[randint(0, 4)]
-cidade_atual = CIDADE_INICIAL
 
-print(f'Cidades: {cidades_com_clientes}')
-print(f'Partida: {CIDADE_INICIAL}')
+# Define a cidade de partida aleatoriamente
+CIDADE_INICIAL = CIDADES[randint(0, len(CIDADES)-1)]
 
-for c in range(0, QUANTIA_CIDADES):
-    try:
-        try:
-            cidades_com_clientes.remove(cidade_atual)
-        except:
-            pass
-        cidade_atual = obterCidadeComClientesMaisProximaDaAtual(cidade_atual, cidades_com_clientes)
+print(f'Cidades com clientes: {cidades_com_clientes}')
+print(f'Cidade de partida: {CIDADE_INICIAL}')
 
-        print(f'Cidades: {cidades_com_clientes}')
-        print(f'Atualmente: {cidade_atual}')
-    except:
-        print('Fim da rota.')
+rota_otima, distancia_otima = encontrar_rota_otima(CIDADE_INICIAL, cidades_com_clientes)
+print(f'Rota ótima: {rota_otima}')
+print(f'Distância total: {distancia_otima} km')
