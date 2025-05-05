@@ -1,4 +1,7 @@
-from model.grafo import Grafo
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
+
+from model.grafoListaAdjacencia import GrafoListaAdjacenceia
 
 class Roteirizador:
     """

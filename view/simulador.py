@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
 from model.entrega import Entrega
 from model.caminhao import Caminhao
 from model.centro_distribuicao import CentroDistribuicao
-from model.grafo import Grafo
+from model.grafoListaAdjacencia import GrafoListaAdjacenceia
 from controller.roteirizador import Roteirizador
 
 
@@ -53,7 +53,7 @@ def simular():
     ]
 
     # 3. Criar o grafo com distâncias fictícias (em horas)
-    g = Grafo()
+    g = GrafoListaAdjacenceia()
     # Conexões entre centros e destinos
     g.adicionar_aresta("Belém", "Manaus", 10)
     g.adicionar_aresta("Recife", "Fortaleza", 5)
