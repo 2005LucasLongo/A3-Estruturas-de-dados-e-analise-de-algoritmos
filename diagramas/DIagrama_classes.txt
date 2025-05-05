@@ -1,0 +1,56 @@
+@startuml
+' Definindo as classes
+class Caminhao {
+    +id: str
+    +capacidade_kg: float
+    +horas_disponiveis: float
+    +entregas: list
+    +pode_entregar(peso: float, tempo_estimado: float): bool
+    +alocar_entrega(entrega: Entrega, tempo_estimado: float)
+    +__repr__(): str
+}
+
+class CentroDistribuicao {
+    +cidade: str
+    +caminhoes: list
+    +adicionar_caminhao(caminhao: Caminhao)
+    +__repr__(): str
+}
+
+class Entrega {
+    +id: str
+    +destino: str
+    +peso: float
+    +prazo: float
+    +__repr__(): str
+}
+
+class Grafo {
+    +vertices: dict
+    +adicionar_aresta(origem: str, destino: str, distancia: float)
+    +dijkstra(origem: str)
+    +caminho_mais_curto(origem: str, destino: str)
+    +__repr__(): str
+}
+
+class Roteirizador {
+    +centros: list
+    +entregas: list
+    +grafo: Grafo
+    +centro_mais_proximo(destino: str): Tuple[CentroDistribuicao, float]
+    +alocar_entregas(): List[Dict]
+}
+
+class Simulador {
+    +simular(): void
+}
+
+' Relacionamentos entre as classes
+Caminhao --> "1..*" Entrega : "aloca"
+CentroDistribuicao --> "1..*" Caminhao : "gerencia"
+Roteirizador --> "1..*" CentroDistribuicao : "utiliza"
+Roteirizador --> "1..*" Entrega : "gerencia"
+Roteirizador --> "1" Grafo : "usa"
+Simulador --> "1" Roteirizador : "executa"
+Grafo --> "1..*" CentroDistribuicao : "associado"
+@enduml
