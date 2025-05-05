@@ -1,6 +1,9 @@
 import time
 import tracemalloc
 import random
+import os, sys
+
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
 
 from model.entrega import Entrega
 from model.caminhao import Caminhao
@@ -44,7 +47,7 @@ def preparar_centros():
     for cidade in cidades:
         centro = CentroDistribuicao(cidade)
         # Adiciona 4 caminhões por centro
-        for j in range(4):
+        for j in range(10):
             cam = Caminhao(f"{cidade[:2]}-{j+1}", 6000, 22)
             centro.adicionar_caminhao(cam)
         centros.append(centro)
@@ -83,7 +86,7 @@ def preparar_grafo():
     return g
 
 
-def testar_desempenho():
+def testar_desempenho(qtd_entregas: int, mostrar_erros: bool=False):
     """
     Executa um teste de desempenho com 100 entregas, medindo tempo e uso de memória.
 
@@ -91,7 +94,7 @@ def testar_desempenho():
     e imprime os resultados de desempenho e alocação de entregas.
     """
     centros = preparar_centros()
-    entregas = gerar_entregas(100)
+    entregas = gerar_entregas(qtd_entregas)
     grafo = preparar_grafo()
 
     tracemalloc.start()
@@ -104,13 +107,19 @@ def testar_desempenho():
     memoria_atual, memoria_pico = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    print("\n✅ Roteirização concluída para 100 entregas.")
+    erros = [rota["erro"] for rota in resultado if "erro" in rota]
+
+    print(f"\n📝 Roteirização concluída para {qtd_entregas} entregas.")
     print(f"⏱️ Tempo de execução: {fim - inicio:.4f} segundos")
     print(f"💾 Uso de memória atual: {memoria_atual / 1024:.2f} KB")
     print(f"📈 Pico de memória: {memoria_pico / 1024:.2f} KB")
-    print(f"Entregas com sucesso: {sum(1 for r in resultado if 'erro' not in r)}")
-    print(f"Entregas com erro: {sum(1 for r in resultado if 'erro' in r)}\n")
+    print(f"✅ Entregas com sucesso: {qtd_entregas - len(erros)} | ({(qtd_entregas - len(erros))/qtd_entregas:.2%})")
+    print(f"❌ Entregas com erro: {len(erros)} | ({len(erros)/qtd_entregas:.2%}\n")
+
+    if mostrar_erros and erros:
+        print(*[rota["erro"] + " com ID " + rota["entrega"].id for rota in resultado if "erro" in rota], sep="\n")
 
 
 if __name__ == "__main__":
-    testar_desempenho()
+    for qtd in [10, 50, 100, 200]:
+        testar_desempenho(qtd)
