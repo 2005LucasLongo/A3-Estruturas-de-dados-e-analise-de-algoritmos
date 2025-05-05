@@ -11,12 +11,12 @@ Este projeto tem como objetivo implementar um sistema de roteirização de entre
 
 ## Integrantes do Projeto
 
-- **Anderson Corrêa** - UNISOCIESC - [Função no Projeto]
-- **Elison Walter Ronchi** - UNISOCIESC - [Função no Projeto]
-- **Erick de Jesus Santana** - UNIFACS - [Função no Projeto]
-- **Felipe Magalhães de Araújo Carneiro** - USJT - [Função no Projeto]
-- **Kéure Passos Soares** - UNISOCIESC - [Função no Projeto]
-- **Lucas Longo** - UNISOCIESC - [Função no Projeto]
+- **Anderson Corrêa** - UNISOCIESC - Definição do problema, modelagem de dados, desenvolvimento do código principal
+- **Elison Walter Ronchi** - UNISOCIESC - Produção textual do relatório
+- **Erick de Jesus Santana** - UNIFACS - Produção textual do relatório
+- **Felipe Magalhães de Araújo Carneiro** - USJT - Desenvolvimento dos testes e documentação in-code
+- **Kéure Passos Soares** - UNISOCIESC - Definição do problema, levantamento de requisitos
+- **Lucas Longo** - UNISOCIESC - Definição do problema, organização dos arquivos, integração dos membros do grupo, gerenciamento de processos e diagramação do relatório conforme as normas ABNT
 
 ## Como Executar os Testes
 
