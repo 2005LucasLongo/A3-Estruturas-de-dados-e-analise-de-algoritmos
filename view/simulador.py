@@ -1,8 +1,13 @@
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
+
 from model.entrega import Entrega
 from model.caminhao import Caminhao
 from model.centro_distribuicao import CentroDistribuicao
 from model.grafo import Grafo
 from controller.roteirizador import Roteirizador
+
+
 
 def simular():
     """
