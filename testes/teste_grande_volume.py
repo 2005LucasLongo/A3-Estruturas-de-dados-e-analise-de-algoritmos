@@ -11,8 +11,7 @@ from model.centro_distribuicao import CentroDistribuicao
 from model.grafo import Grafo
 from controller.roteirizador import Roteirizador
 
-
-def gerar_entregas(qtd):
+def gerar_entregas(qtd: int) -> list:
     """
     Gera uma lista de objetos Entrega com dados aleatórios.
 
@@ -35,7 +34,7 @@ def gerar_entregas(qtd):
     return entregas
 
 
-def preparar_centros():
+def preparar_centros() -> list:
     """
     Cria centros de distribuição com caminhões alocados.
 
@@ -54,7 +53,7 @@ def preparar_centros():
     return centros
 
 
-def preparar_grafo():
+def preparar_grafo() -> Grafo:
     """
     Cria um grafo com as conexões entre centros e destinos, simulando distâncias (em horas).
 
@@ -86,7 +85,7 @@ def preparar_grafo():
     return g
 
 
-def testar_desempenho(qtd_entregas: int, mostrar_erros: bool=False):
+def testar_desempenho(qtd_entregas: int, mostrar_erros: bool=False) -> tuple[int, int]:
     """
     Executa um teste de desempenho com 100 entregas, medindo tempo e uso de memória.
 
@@ -108,16 +107,20 @@ def testar_desempenho(qtd_entregas: int, mostrar_erros: bool=False):
     tracemalloc.stop()
 
     erros = [rota["erro"] for rota in resultado if "erro" in rota]
+    tot_erros = len(erros)
+    tot_sucessos = qtd_entregas - len(erros)
 
     print(f"\n📝 Roteirização concluída para {qtd_entregas} entregas.")
     print(f"⏱️ Tempo de execução: {fim - inicio:.4f} segundos")
     print(f"💾 Uso de memória atual: {memoria_atual / 1024:.2f} KB")
     print(f"📈 Pico de memória: {memoria_pico / 1024:.2f} KB")
-    print(f"✅ Entregas com sucesso: {qtd_entregas - len(erros)} | ({(qtd_entregas - len(erros))/qtd_entregas:.2%})")
-    print(f"❌ Entregas com erro: {len(erros)} | ({len(erros)/qtd_entregas:.2%}\n")
+    print(f"✅ Entregas com sucesso: {tot_sucessos} | ({tot_sucessos/qtd_entregas:.2%})")
+    print(f"❌ Entregas com erro: {tot_erros} | ({tot_erros/qtd_entregas:.2%}\n")
 
     if mostrar_erros and erros:
         print(*[rota["erro"] + " com ID " + rota["entrega"].id for rota in resultado if "erro" in rota], sep="\n")
+
+    return tot_sucessos, tot_erros
 
 
 if __name__ == "__main__":
