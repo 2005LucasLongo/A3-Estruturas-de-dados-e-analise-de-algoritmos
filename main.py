@@ -5,7 +5,7 @@ import importlib.util
 import time
 import traceback
 
-DEPENDENCIAS = ["tabulate", "pandas", "matplotlib", "numpy", "openpyxl"]
+DEPENDENCIAS = ["tabulate", "pandas", "matplotlib", "numpy", "openpyxl", "networkx"]
 
 PROJETO_RAIZ = os.path.dirname(os.path.abspath(__file__))
 VENV_PYTHON = os.path.join(PROJETO_RAIZ, "venv", "Scripts", "python.exe")

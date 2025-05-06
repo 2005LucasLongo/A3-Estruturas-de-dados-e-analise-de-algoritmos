@@ -15,7 +15,7 @@ def obter_modulos_teste():
         "Lista de Arestas": "testes.teste_lista_arestas",
         "Dicionário de Dicionários": "testes.teste_dicionario",
         "Grafo com Objetos": "testes.teste_oo",
-        # "NetworkX": "testes.teste_networkx,"
+        "NetworkX": "testes.teste_networkx",
     }
 
 def executar_testes_em_lote(cenarios, quantidades):
