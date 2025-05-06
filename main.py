@@ -17,7 +17,7 @@ def dependencias_instaladas():
 
 def instalar_dependencias():
     """Instala as dependências usando o pip"""
-    caminho_requirements = os.path.join(os.path.dirname(_file_), "requirements.txt")
+    caminho_requirements = os.path.join(os.path.dirname(__file__), "requirements.txt")
     
     if not os.path.exists(caminho_requirements):
         raise FileNotFoundError(f"Arquivo requirements.txt não encontrado em {caminho_requirements}")
