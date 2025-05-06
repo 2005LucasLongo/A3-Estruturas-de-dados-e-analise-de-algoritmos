@@ -12,8 +12,8 @@ def obter_modulos_teste():
     return {
         "Lista de Adjacência": "testes.teste_lista_adjacencia",
         "Matriz de Adjacência": "testes.teste_matriz_ajacencia",
-        # "Lista de Arestas": "testes.teste_lista_arestas",
-        # "Dicionário de Dicionários": "testes.teste_dicionario",
+        "Lista de Arestas": "testes.teste_lista_arestas",
+        "Dicionário de Dicionários": "testes.teste_dicionario",
         # "Grafo com Objetos": "testes.teste_oo",
         # "NetworkX": "testes.teste_networkx,"
     }

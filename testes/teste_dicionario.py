@@ -1,42 +1,31 @@
 import time
 import tracemalloc
 import random
-import os, sys
+import os
+import sys
 
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
 
 from model.entrega import Entrega
 from model.caminhao import Caminhao
 from model.centro_distribuicao import CentroDistribuicao
-from model.grafoMatrizAdjacencia import GrafoMatrizAdjacencia
+from model.grafoDicionario import GrafoDicionario
 from controller.roteirizador import Roteirizador
 
 def gerar_entregas(qtd: int) -> list:
-    """
-    Gera uma lista de objetos Entrega com dados aleatórios.
-
-    Args:
-        qtd (int): Quantidade de entregas a serem geradas.
-
-    Returns:
-        list: Lista de objetos Entrega.
-    """
     destinos = [
         "Salvador", "Fortaleza", "Manaus", "Porto Alegre", "Curitiba",
         "Rio de Janeiro", "Vitória", "Goiânia", "Campo Grande", "Natal"
     ]
-    return [
-        Entrega(f"E{i:03d}", random.choice(destinos), random.randint(500, 3000), random.randint(8, 24))
-        for i in range(qtd)
-    ]
+    entregas = []
+    for i in range(qtd):
+        destino = random.choice(destinos)
+        peso = random.randint(500, 3000)
+        prazo = random.randint(8, 24)
+        entregas.append(Entrega(f"E{i:03d}", destino, peso, prazo))
+    return entregas
 
 def preparar_centros() -> list:
-    """
-    Cria centros de distribuição com caminhões alocados.
-
-    Returns:
-        list: Lista de objetos CentroDistribuicao com caminhões.
-    """
     cidades = ["Belém", "Recife", "Brasília", "São Paulo", "Florianópolis"]
     centros = []
     for cidade in cidades:
@@ -47,16 +36,8 @@ def preparar_centros() -> list:
         centros.append(centro)
     return centros
 
-def preparar_grafo() -> GrafoMatrizAdjacencia:
-    """
-    Cria um grafo com a representação de matriz de adjacência para as conexões.
-    """
-    cidades = [
-    "Belém", "Recife", "Brasília", "São Paulo", "Florianópolis",
-    "Salvador", "Fortaleza", "Manaus", "Porto Alegre", "Curitiba",
-    "Rio de Janeiro", "Vitória", "Goiânia", "Campo Grande", "Natal"
-    ]
-    g = GrafoMatrizAdjacencia(cidades)
+def preparar_grafo() -> GrafoDicionario:
+    g = GrafoDicionario()
     g.adicionar_aresta("Belém", "Manaus", 10)
     g.adicionar_aresta("Recife", "Fortaleza", 5)
     g.adicionar_aresta("Recife", "Salvador", 6)
@@ -77,12 +58,6 @@ def preparar_grafo() -> GrafoMatrizAdjacencia:
     return g
 
 def executar_teste(qtd_entregas: int) -> dict:
-    """
-    Executa um teste de desempenho com 100 entregas, medindo tempo e uso de memória.
-
-    O teste simula centros, entregas, e o grafo de conexões. Roda o algoritmo de roteirização
-    e imprime os resultados de desempenho e alocação de entregas.
-    """
     centros = preparar_centros()
     entregas = gerar_entregas(qtd_entregas)
     grafo = preparar_grafo()
@@ -102,7 +77,7 @@ def executar_teste(qtd_entregas: int) -> dict:
     tot_sucessos = qtd_entregas - tot_erros
 
     return {
-        "estrutura": "Matriz de Adjacência",
+        "estrutura": "Dicionário de Dicionários",
         "qtd_entregas": qtd_entregas,
         "tempo": fim - inicio,
         "memoria_atual_kb": memoria_atual / 1024,
