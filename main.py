@@ -5,7 +5,7 @@ import importlib.util
 import time
 import traceback
 
-DEPENDENCIAS = ["tabulate"]
+DEPENDENCIAS = ["tabulate", "pandas", "matplotlib", "numpy", "openpyxl"]
 
 PROJETO_RAIZ = os.path.dirname(os.path.abspath(__file__))
 VENV_PYTHON = os.path.join(PROJETO_RAIZ, "venv", "Scripts", "python.exe")
@@ -79,7 +79,8 @@ def reiniciar_com_venv():
     
     sys.exit()
 
-
+def limpar_tela():
+    os.system("cls" if os.name == "nt" else "clear")
 
 if __name__ == "__main__":
     os.chdir(PROJETO_RAIZ)
@@ -102,6 +103,9 @@ if __name__ == "__main__":
                     log.write(f"Erro ao instalar dependências: {traceback.format_exc()}\n")
                 print(str(e))
                 input("\nPressione Enter para sair...")
+
+        # Limpa a tela depois que tudo está OK
+        limpar_tela()
 
         try:
             # Importa os módulos após garantir que as dependências estão instaladas
