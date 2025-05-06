@@ -14,7 +14,7 @@ def obter_modulos_teste():
         "Matriz de Adjacência": "testes.teste_matriz_ajacencia",
         "Lista de Arestas": "testes.teste_lista_arestas",
         "Dicionário de Dicionários": "testes.teste_dicionario",
-        # "Grafo com Objetos": "testes.teste_oo",
+        "Grafo com Objetos": "testes.teste_oo",
         # "NetworkX": "testes.teste_networkx,"
     }
 
