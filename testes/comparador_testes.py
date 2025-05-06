@@ -11,7 +11,11 @@ def adicionar_raiz_ao_path():
 def obter_modulos_teste():
     return {
         "Lista de Adjacência": "testes.teste_lista_adjacencia",
-        "Matriz de Adjacência": "testes.teste_matriz_ajacencia"
+        "Matriz de Adjacência": "testes.teste_matriz_ajacencia",
+        # "Lista de Arestas": "testes.teste_lista_arestas",
+        # "Dicionário de Dicionários": "testes.teste_dicionario",
+        # "Grafo com Objetos": "testes.teste_oo",
+        # "NetworkX": "testes.teste_networkx,"
     }
 
 def executar_testes_em_lote(cenarios, quantidades):
@@ -23,7 +27,7 @@ def executar_testes_em_lote(cenarios, quantidades):
         for nome, modulo_path in cenarios.items():
             try:
                 modulo = importlib.import_module(modulo_path)
-                print(f"Executando {nome}...")
+                # print(f"Executando {nome}...")
                 resultado = modulo.executar_teste(qtd)
                 resultados.append([
                     resultado["estrutura"],
@@ -35,6 +39,9 @@ def executar_testes_em_lote(cenarios, quantidades):
                 ])
             except Exception as e:
                 print(f"Erro ao executar {nome} com {qtd} entregas: {e}")
+
+        # Adiciona uma linha vazia após os testes de cada quantidade de entregas
+        resultados.append(["---", "---", "---", "---", "---", "---"])
     return resultados
 
 def exibir_resultados(resultados):
