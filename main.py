@@ -5,10 +5,28 @@ import importlib.util
 import time
 import traceback
 
-DEPENDENCIAS = ["tabulate", "pandas", "matplotlib", "numpy", "openpyxl", "networkx"]
-
 PROJETO_RAIZ = os.path.dirname(os.path.abspath(__file__))
 VENV_PYTHON = os.path.join(PROJETO_RAIZ, "venv", "Scripts", "python.exe")
+
+def carregar_dependencias():
+    """Lê os nomes dos pacotes a partir do requirements.txt (ignora versões)."""
+    try:
+        caminho = os.path.join(PROJETO_RAIZ, "requirements.txt")
+        with open(caminho, "r", encoding="utf-8") as req:
+            linhas = req.readlines()
+            pacotes = []
+            for linha in linhas:
+                linha = linha.strip()
+                if linha and not linha.startswith("#"):
+                    nome = linha.split("==")[0].strip()
+                    pacotes.append(nome)
+            return pacotes
+    except Exception as e:
+        print(f"❌ Erro ao carregar requirements.txt: {e}")
+        with open("erro.log", "a", encoding="utf-8") as log:
+            log.write(f"Erro ao carregar dependências: {traceback.format_exc()}\n")
+        raise e
+
 
 def esta_na_venv():
     """Verifica se o programa está sendo executado dentro de uma venv."""
@@ -21,14 +39,16 @@ def esta_na_venv():
         raise e
 
 def dependencias_instaladas():
-    """Verifica se as dependências estão instaladas."""
+    """Verifica se as dependências listadas em requirements.txt estão instaladas."""
     try:
-        return all(importlib.util.find_spec(pkg) for pkg in DEPENDENCIAS)
+        pacotes = carregar_dependencias()
+        return all(importlib.util.find_spec(pkg) for pkg in pacotes)
     except Exception as e:
         print(f"❌ Erro ao verificar dependências: {e}")
         with open("erro.log", "a", encoding="utf-8") as log:
             log.write(f"Erro ao verificar dependências: {traceback.format_exc()}\n")
         raise e
+
 
 def instalar_dependencias():
     """Instala as dependências a partir de requirements.txt."""
