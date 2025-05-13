@@ -1,34 +1,44 @@
-import os
-import sys
-import importlib
+import os, sys
 from tabulate import tabulate
+from time import sleep
 
-def adicionar_raiz_ao_path():
-    raiz = os.path.abspath(os.path.join(__file__, "..", ".."))
-    if raiz not in sys.path:
-        sys.path.append(raiz)
+raiz = os.path.abspath(os.path.join(__file__, "..", ".."))
+if raiz not in sys.path:
+    sys.path.append(raiz)
+
+from testes import teste_dicionario, teste_lista_adjacencia, teste_lista_arestas, teste_matriz_ajacencia, teste_networkx, teste_oo
+from utils.gerador_entregas import gerar_entregas
+from utils.mapa_logistico import obter_estrutura_mapa, criar_centros_distribuicao, adicionar_frota_padrao
 
 def obter_modulos_teste():
     return {
-        "Lista de Adjacência": "testes.teste_lista_adjacencia",
-        "Matriz de Adjacência": "testes.teste_matriz_ajacencia",
-        "Lista de Arestas": "testes.teste_lista_arestas",
-        "Dicionário de Dicionários": "testes.teste_dicionario",
-        "Grafo com Objetos": "testes.teste_oo",
-        "NetworkX": "testes.teste_networkx",
+        "Lista de Adjacência": teste_lista_adjacencia,
+        "Matriz de Adjacência": teste_matriz_ajacencia,
+        "Lista de Arestas": teste_lista_arestas,
+        "Dicionário de Dicionários": teste_dicionario,
+        "Grafo com Objetos": teste_oo,
+        "NetworkX": teste_networkx,
     }
 
+
 def executar_testes_em_lote(cenarios, quantidades):
+    centros, arestas, destinos = obter_estrutura_mapa()
+    adicionar_frota_padrao(centros, max(quantidades))
     resultados = []
     print("🔍 Comparando desempenho dos algoritmos de roteirização:\n")
 
     for qtd in quantidades:
-        print(f"📦 Testando com {qtd} entregas:\n")
-        for nome, modulo_path in cenarios.items():
+        entregas = gerar_entregas(qtd, destinos)
+
+        print(f"📦 Testando com {qtd} entregas:")
+        for nome, modulo in cenarios.items():
             try:
-                modulo = importlib.import_module(modulo_path)
-                # print(f"Executando {nome}...")
-                resultado = modulo.executar_teste(qtd)
+                resultado = modulo.executar_teste(
+                    centros=centros,
+                    arestas=arestas,
+                    entregas=entregas,
+                    mostrar_erros=False,
+                )
                 resultados.append([
                     resultado["estrutura"],
                     resultado["qtd_entregas"],
@@ -38,21 +48,22 @@ def executar_testes_em_lote(cenarios, quantidades):
                     resultado["erros"]
                 ])
             except Exception as e:
-                print(f"Erro ao executar {nome} com {qtd} entregas: {e}")
+                print(f"❌ Erro ao executar {nome} com {qtd} entregas: {e}")
 
-        # Adiciona uma linha vazia após os testes de cada quantidade de entregas
-        resultados.append(["---", "---", "---", "---", "---", "---"])
+        # resultados.append(["---", "---", "---", "---", "---", "---"])
+
     return resultados
 
 def exibir_resultados(resultados):
     headers = ["Estrutura", "Entregas", "Tempo (s)", "Memória Pico (KB)", "Sucesso", "Erros"]
-    print("📊 Resultados Comparativos:")
-    print(tabulate(resultados, headers=headers, tablefmt="fancy_grid"))
+    print("\n📊 Resultados Comparativos:")
+    for resutlado in range(0, len(resultados), len(resultados[0])):
+        print(tabulate(resultados[resutlado:resutlado + len(resultados[0])], headers=headers, tablefmt="fancy_grid"))
+        sleep(2)
 
 def comparar_algoritmos():
-    adicionar_raiz_ao_path()
     cenarios = obter_modulos_teste()
-    quantidades = [10, 50, 100, 200]
+    quantidades = [10, 200, 1000, 5000]
     resultados = executar_testes_em_lote(cenarios, quantidades)
     exibir_resultados(resultados)
 

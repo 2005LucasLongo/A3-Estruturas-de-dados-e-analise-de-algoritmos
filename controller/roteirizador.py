@@ -1,8 +1,6 @@
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
 
-from model.grafoListaAdjacencia import GrafoListaAdjacenceia
-
 class Roteirizador:
     """
     Orquestra a roteirização de entregas a partir de múltiplos centros de distribuição.
