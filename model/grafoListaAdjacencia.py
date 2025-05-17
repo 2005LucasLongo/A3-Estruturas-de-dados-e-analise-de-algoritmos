@@ -38,6 +38,10 @@ class GrafoListaAdjacenceia:
                 dict: Mapeamento de cidades para suas menores distâncias desde a origem.
                 dict: Mapeamento de cada cidade para seu antecessor no caminho mais curto.
         """
+
+        if origem not in self.vertices:
+            raise ValueError(f"Cidade '{origem}' não existe no grafo.")
+            
         distancias = {v: float('inf') for v in self.vertices}
         distancias[origem] = 0
         anterior = {v: None for v in self.vertices}

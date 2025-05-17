@@ -4,7 +4,7 @@ class Entrega:
 
     Contém informações sobre destino, peso e prazo máximo de entrega.
     """
-    def __init__(self, id_entrega, destino, peso, prazo):
+    def __init__(self, id_entrega, destino, peso, prazo, origem=None):
         """
         Inicializa uma nova entrega com seus atributos básicos.
 
@@ -18,6 +18,7 @@ class Entrega:
         self.destino = destino
         self.peso = peso
         self.prazo = prazo
+        self.origem = origem
 
     def __repr__(self):
         """
@@ -26,4 +27,4 @@ class Entrega:
         Returns:
             str: Informações resumidas da entrega.
         """
-        return f"Entrega {self.id} -> {self.destino} | Peso: {self.peso}kg | Prazo: {self.prazo}h"
+        return f"Entrega {self.id} -> {self.destino} | Peso: {self.peso}kg | Prazo Máximo: {self.prazo}h"

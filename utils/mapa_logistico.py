@@ -1,4 +1,5 @@
 import os, sys
+from random import randint, seed
 
 raiz = os.path.abspath(os.path.join(__file__, "..", ".."))
 if raiz not in sys.path:
@@ -6,6 +7,8 @@ if raiz not in sys.path:
 
 from model.centro_distribuicao import CentroDistribuicao
 from model.caminhao import Caminhao
+
+seed(42)
 
 def criar_centros_distribuicao() -> list:
     """
@@ -25,7 +28,7 @@ def adicionar_frota_padrao(centros: list, qtd_caminhoes: int = 10):
     for centro in centros:
         for j in range(qtd_caminhoes):
             placa = f"{centro.cidade[:2]}-{j+1}"
-            caminhao = Caminhao(placa, capacidade_kg=6000, horas_disponiveis=22)
+            caminhao = Caminhao(placa, capacidade_kg=randint(1000, 10000), horas_disponiveis=randint(8, 20), centro_origem=centro.cidade)
             centro.adicionar_caminhao(caminhao)
 
 def preparar_centros_com_frota(qtd_caminhoes_por_centro=10) -> list:
@@ -48,31 +51,79 @@ def obter_estrutura_mapa():
 
     centros = criar_centros_distribuicao()
 
-    arestas = [
-        ("Belém", "Manaus", 10),
-        ("Recife", "Fortaleza", 5),
-        ("Recife", "Salvador", 6),
-        ("Brasília", "Salvador", 7),
-        ("São Paulo", "Curitiba", 4),
-        ("Florianópolis", "Curitiba", 3),
-        ("Florianópolis", "Porto Alegre", 5),
-        ("São Paulo", "Porto Alegre", 7),
-        ("Brasília", "Goiânia", 4),
-        ("Brasília", "Campo Grande", 9),
-        ("São Paulo", "Rio de Janeiro", 6),
-        ("São Paulo", "Vitória", 8),
-        ("Recife", "Natal", 4),
+    arestas_base  = [
+        # Região Norte
+        ("Rio Branco", "Porto Velho", 5),
+        ("Porto Velho", "Manaus", 8),
+        ("Manaus", "Boa Vista", 6),
+        ("Manaus", "Macapá", 10),
+        ("Macapá", "Belém", 6),
 
-        # Ligações entre centros
-        ("Belém", "Brasília", 12),
-        ("Recife", "Brasília", 10),
-        ("Brasília", "São Paulo", 8),
-        ("São Paulo", "Florianópolis", 6)
+        # Região Nordeste
+        ("São Luís", "Teresina", 4),
+        ("Teresina", "Fortaleza", 6),
+        ("Fortaleza", "Natal", 4),
+        ("Natal", "João Pessoa", 2),
+        ("João Pessoa", "Recife", 2),
+        ("Recife", "Maceió", 3),
+        ("Maceió", "Aracaju", 3),
+        ("Aracaju", "Salvador", 4),
+
+        # Conexões Norte/Nordeste/Centro-Oeste
+        ("Belém", "Palmas", 10),
+        ("Palmas", "Brasília", 6),
+        ("São Luís", "Palmas", 8),
+        ("Salvador", "Brasília", 7),
+        ("Fortaleza", "Brasília", 12),
+
+        # Região Centro-Oeste
+        ("Brasília", "Goiânia", 2),
+        ("Goiânia", "Cuiabá", 7),
+        ("Cuiabá", "Campo Grande", 5),
+        ("Campo Grande", "Brasília", 8),
+
+        # Região Sudeste
+        ("Brasília", "Belo Horizonte", 5),
+        ("Belo Horizonte", "Rio de Janeiro", 5),
+        ("Belo Horizonte", "Vitória", 4),
+        ("Rio de Janeiro", "Vitória", 6),
+        ("Rio de Janeiro", "São Paulo", 4),
+
+        # Região Sul
+        ("São Paulo", "Curitiba", 4),
+        ("Curitiba", "Florianópolis", 3),
+        ("Florianópolis", "Porto Alegre", 5),
+
+        # Conexões Sudeste/Centro-Oeste/Sul
+        ("São Paulo", "Campo Grande", 6),
+        ("São Paulo", "Goiânia", 5),
+
+        # Extras para garantir múltiplos caminhos
+        ("Manaus", "Belém", 10),
+        ("Boa Vista", "Macapá", 10),
+        ("Cuiabá", "Porto Velho", 6),
+        ("Porto Alegre", "Campo Grande", 7),
+        ("Palmas", "Cuiabá", 9),
+        ("Vitória", "Salvador", 7),
+        ("São Luís", "Belém", 6),
+        ("Aracaju", "Recife", 5)
     ]
+
+     # Garante bidirecionalidade (duas vias)
+    arestas = []
+    for origem, destino, peso in arestas_base:
+        arestas.append((origem, destino, peso))
+        arestas.append((destino, origem, peso))
+
 
     destinos = [
-        "Manaus", "Fortaleza", "Salvador", "Curitiba", "Porto Alegre",
-        "Goiânia", "Campo Grande", "Rio de Janeiro", "Vitória", "Natal"
+        "Aracaju", "Belém", "Belo Horizonte", "Boa Vista", "Brasília",
+        "Campo Grande", "Cuiabá", "Curitiba", "Florianópolis", "Fortaleza",
+        "Goiânia", "João Pessoa", "Macapá", "Maceió", "Manaus",
+        "Natal", "Palmas", "Porto Alegre", "Porto Velho", "Recife",
+        "Rio Branco", "Rio de Janeiro", "Salvador", "São Luís", "São Paulo",
+        "Teresina", "Vitória"
     ]
+
 
     return centros, arestas, destinos

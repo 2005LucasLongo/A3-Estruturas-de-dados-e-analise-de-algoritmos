@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
             print("🚀 Executando o programa. Por favor, aguarde...\n")
             time.sleep(1)
-            simular()
+            # simular()
             comparar_algoritmos()
             input("\n✅ Execução concluída. Pressione Enter para sair...")
 

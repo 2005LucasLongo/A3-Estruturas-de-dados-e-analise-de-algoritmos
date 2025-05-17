@@ -50,49 +50,118 @@ class Roteirizador:
 
     def alocar_entregas(self):
         """
-        Realiza a alocação de cada entrega a um caminhão disponível.
-
-        Para cada entrega:
-          1. Identifica o centro mais próximo e obtém rota e tempo estimado.
-          2. Percorre a frota do centro checando `caminhao.pode_entregar`.
-          3. Se possível, chama `caminhao.alocar_entrega` e registra a alocação.
-          4. Caso contrário, registra erro de falta de veículo viável.
-
-        Returns:
-            List[Dict]: lista de dicionários, cada um contendo:
-                - 'entrega': objeto Entrega
-                - 'caminhao': objeto Caminhao (se alocado)
-                - 'centro': nome da cidade do centro
-                - 'rota': list[str] da sequência de cidades
-                - 'tempo': float do tempo estimado
-                - 'erro': str, presente apenas se falhou a alocação
+        Realiza a alocação de cada entrega a um caminhão disponível, preferencialmente em caminhões
+        já alocados com rotas ativas, otimizando a nova rota para incluir o destino adicional.
         """
         relatorio = []
 
         for entrega in self.entregas:
-            centro, dist = self.centro_mais_proximo(entrega.destino)
-            caminho, tempo_estimado = self.grafo.caminho_mais_curto(centro.cidade, entrega.destino)
-
-            # Procurar um caminhão viável no centro
-            caminhao_alocado = None
-            for caminhao in centro.caminhoes:
-                if caminhao.pode_entregar(entrega.peso, tempo_estimado):
-                    caminhao_alocado = caminhao
-                    break
-
-            if caminhao_alocado:
-                caminhao_alocado.alocar_entrega(entrega, tempo_estimado)
+            centro, _ = self.centro_mais_proximo(entrega.destino)
+            if centro is None:
                 relatorio.append({
                     "entrega": entrega,
-                    "caminhao": caminhao_alocado,
-                    "centro": centro.cidade,
-                    "rota": caminho,
-                    "tempo": tempo_estimado
+                    "erro": f"Nenhum centro de distribuição pode alcançar '{entrega.destino}'"
+                })
+                continue
+
+
+            entrega.origem = centro.cidade
+
+            melhor_caminhao = None
+            melhor_rota = None
+            melhor_tempo = float('inf')
+
+            for centro in self.centros:
+                for caminhao in centro.caminhoes:
+                    # Cidades de todas as entregas + nova entrega
+                    destinos = [e.destino for e in caminhao.entregas] + [entrega.destino]
+
+                    # Evita recalcular rota se já passou da capacidade
+                    peso_total = sum(e.peso for e in caminhao.entregas) + entrega.peso
+
+                    if peso_total > caminhao.capacidade_kg_total:
+                        continue
+
+                    # Tenta encontrar a melhor ordem para visitar os destinos
+                    from itertools import permutations
+
+                    melhor_caminho_candidato = None
+                    melhor_tempo_candidato = float('inf')
+
+                    for ordem in permutations(destinos):
+                        origem = centro.cidade if not caminhao.entregas else caminhao.entregas[0].origem
+                        tempo_total = 0
+                        rota_total = [origem]
+
+                        atual = origem
+                        for destino in ordem:
+                            caminho, tempo = self.grafo.caminho_mais_curto(atual, destino)
+                            if not caminho:
+                                break
+                            tempo_total += tempo
+                            rota_total.extend(caminho[1:])  # Evita duplicar cidades
+                            atual = destino
+
+                        if tempo_total <= caminhao.horas_disponiveis and tempo_total < melhor_tempo_candidato:
+                            melhor_tempo_candidato = tempo_total
+                            melhor_caminho_candidato = rota_total
+
+                    if melhor_caminho_candidato and melhor_tempo_candidato < melhor_tempo:
+                        melhor_tempo = melhor_tempo_candidato
+                        melhor_rota = melhor_caminho_candidato
+                        melhor_caminhao = caminhao
+
+            if melhor_caminhao:
+                melhor_caminhao.alocar_entrega(entrega, melhor_tempo)
+                melhor_caminhao.rota = melhor_rota
+                relatorio.append({
+                    "entrega": entrega,
+                    "caminhao": melhor_caminhao,
+                    "centro": melhor_caminhao.centro_origem,
+                    "rota": melhor_rota,
+                    "tempo": melhor_tempo
                 })
             else:
                 relatorio.append({
                     "entrega": entrega,
-                    "erro": f"Nenhum caminhão disponível em {centro.cidade} para a entrega"
+                    "erro": f"Nenhum caminhão viável para a entrega {entrega.id}"
                 })
 
+
         return relatorio
+
+    def _melhor_rota_com_destinos(self, origem, destinos):
+        """
+        Gera a melhor rota passando por múltiplos destinos, retornando o caminho e o tempo total.
+        Usa permutação simples pois o número de destinos por caminhão é pequeno.
+
+        Args:
+            origem (str): cidade de origem
+            destinos (List[str]): lista de destinos a serem cobertos
+
+        Returns:
+            Tuple[List[str], float]: caminho total e tempo total
+        """
+        from itertools import permutations
+
+        menor_tempo = float('inf')
+        melhor_rota = []
+
+        for ordem in permutations(destinos):
+            rota_total = []
+            tempo_total = 0
+            atual = origem
+
+            for destino in ordem:
+                sub_rota, tempo = self.grafo.caminho_mais_curto(atual, destino)
+                if rota_total:
+                    sub_rota = sub_rota[1:]  # evita duplicação da cidade atual
+                rota_total += sub_rota
+                tempo_total += tempo
+                atual = destino
+
+            if tempo_total < menor_tempo:
+                menor_tempo = tempo_total
+                melhor_rota = rota_total
+
+        return melhor_rota, menor_tempo

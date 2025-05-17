@@ -23,7 +23,7 @@ def obter_modulos_teste():
 
 def executar_testes_em_lote(cenarios, quantidades):
     centros, arestas, destinos = obter_estrutura_mapa()
-    adicionar_frota_padrao(centros, max(quantidades))
+    adicionar_frota_padrao(centros, max(quantidades) * 2)
     resultados = []
     print("🔍 Comparando desempenho dos algoritmos de roteirização:\n")
 
@@ -37,7 +37,7 @@ def executar_testes_em_lote(cenarios, quantidades):
                     centros=centros,
                     arestas=arestas,
                     entregas=entregas,
-                    mostrar_erros=False,
+                    mostrar_erros=True,
                 )
                 resultados.append([
                     resultado["estrutura"],
@@ -63,9 +63,14 @@ def exibir_resultados(resultados):
 
 def comparar_algoritmos():
     cenarios = obter_modulos_teste()
-    quantidades = [10, 200, 1000]
+    quantidades = [ 
+        10, 
+        100,
+        # 1000
+    ]
     resultados = executar_testes_em_lote(cenarios, quantidades)
-    exibir_resultados(resultados)
+    if resultados:
+        exibir_resultados(resultados)
 
 if __name__ == "__main__":
     comparar_algoritmos()

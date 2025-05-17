@@ -5,7 +5,7 @@ class Caminhao:
     Cada caminhão possui uma capacidade máxima de carga (em kg), uma quantidade 
     de horas disponíveis para trabalho, e uma lista de entregas alocadas.
     """
-    def __init__(self, id_caminhao, capacidade_kg, horas_disponiveis):
+    def __init__(self, id_caminhao, capacidade_kg, horas_disponiveis, centro_origem):
         """
         Inicializa o caminhão com identificador, capacidade e tempo disponível.
 
@@ -19,7 +19,9 @@ class Caminhao:
         self.capacidade_kg_total = capacidade_kg
         self.horas_totais = horas_disponiveis
         self.horas_disponiveis = horas_disponiveis
+        self.centro_origem = centro_origem
         self.entregas = []
+        self.rota = []
 
     def pode_entregar(self, peso, tempo_estimado):
         """
@@ -53,4 +55,6 @@ class Caminhao:
         Returns:
             str: string com ID, capacidade restante e horas disponíveis.
         """
-        return f"ID: {self.id} | Capacidade: {self.capacidade_kg_disponiveis}kg disponíveis de {self.capacidade_kg_total}kg total. | Horas restantes: {self.horas_disponiveis}h de {self.horas_totais}h total."
+        rota_str = " → ".join(self.rota) if self.rota else "Sem rota definida"
+        return (f"ID: {self.id} | Capacidade: {self.capacidade_kg_disponiveis}kg de {self.capacidade_kg_total}kg | "
+            f"Horas: {self.horas_disponiveis}h de {self.horas_totais}h")
