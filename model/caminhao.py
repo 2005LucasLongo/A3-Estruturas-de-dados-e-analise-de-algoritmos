@@ -15,7 +15,9 @@ class Caminhao:
             horas_disponiveis (float): número de horas disponíveis para entregas.
         """
         self.id = id_caminhao
-        self.capacidade_kg = capacidade_kg
+        self.capacidade_kg_disponiveis = capacidade_kg
+        self.capacidade_kg_total = capacidade_kg
+        self.horas_totais = horas_disponiveis
         self.horas_disponiveis = horas_disponiveis
         self.entregas = []
 
@@ -30,7 +32,7 @@ class Caminhao:
         Returns:
             bool: True se o caminhão tiver capacidade e tempo suficientes, False caso contrário.
         """
-        return peso <= self.capacidade_kg and tempo_estimado <= self.horas_disponiveis
+        return peso <= self.capacidade_kg_disponiveis and tempo_estimado <= self.horas_disponiveis
 
     def alocar_entrega(self, entrega, tempo_estimado):
         """
@@ -41,7 +43,7 @@ class Caminhao:
             tempo_estimado (float): tempo estimado de duração da entrega em horas.
         """
         self.entregas.append(entrega)
-        self.capacidade_kg -= entrega.peso
+        self.capacidade_kg_disponiveis -= entrega.peso
         self.horas_disponiveis -= tempo_estimado
 
     def __repr__(self):
@@ -51,4 +53,4 @@ class Caminhao:
         Returns:
             str: string com ID, capacidade restante e horas disponíveis.
         """
-        return f"Caminhao {self.id} | Capacidade: {self.capacidade_kg}kg | Horas restantes: {self.horas_disponiveis}"
+        return f"ID: {self.id} | Capacidade: {self.capacidade_kg_disponiveis}kg disponíveis de {self.capacidade_kg_total}kg total. | Horas restantes: {self.horas_disponiveis}h de {self.horas_totais}h total."
