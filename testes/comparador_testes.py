@@ -65,7 +65,7 @@ def comparar_algoritmos():
     cenarios = obter_modulos_teste()
     quantidades = [ 
         10, 
-        100,
+        50,
         # 1000
     ]
     resultados = executar_testes_em_lote(cenarios, quantidades)
