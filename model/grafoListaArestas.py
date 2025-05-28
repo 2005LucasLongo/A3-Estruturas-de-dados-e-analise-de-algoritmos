@@ -1,97 +1,126 @@
 import heapq
 
 class GrafoListaArestas:
-    def __init__(self):
+    def __init__(self, tipo_fila_dijkstra='heap'): # Adicionado parâmetro
         """
         Inicializa o grafo com uma lista de arestas.
         Cada aresta é uma tupla (origem, destino, peso).
         """
-        self.arestas = []  # Lista de arestas, cada aresta é uma tupla (origem, destino, peso)
+        self.arestas = []  # Lista de arestas
+        self.nos_do_grafo = None # Cache para os nós
+        self.tipo_fila_dijkstra = tipo_fila_dijkstra.lower()
+        if self.tipo_fila_dijkstra not in ['heap', 'lista']:
+            raise ValueError("tipo_fila_dijkstra deve ser 'heap' ou 'lista'")
 
     def adicionar_aresta(self, origem, destino, peso):
-        """
-        Adiciona uma aresta bidirecional entre duas cidades com uma distância específica.
-
-        Args:
-            origem (str): Cidade de origem.
-            destino (str): Cidade de destino.
-            peso (float): Distância entre origem e destino.
-        """
+        """ Adiciona uma aresta bidirecional. """
         self.arestas.append((origem, destino, peso))
-        self.arestas.append((destino, origem, peso))  # Grafo não-direcionado
+        self.arestas.append((destino, origem, peso))
+        self.nos_do_grafo = None # Invalida o cache de nós ao adicionar aresta
 
-    def vizinhos(self, no):
-        """
-        Retorna os vizinhos de um nó, ou seja, todas as cidades conectadas a este nó.
+    def _atualizar_nos(self):
+        """ Helper interno para obter e armazenar os nós únicos do grafo. """
+        if self.nos_do_grafo is None:
+            nos = set()
+            for o, d, _ in self.arestas:
+                nos.add(o)
+                nos.add(d)
+            self.nos_do_grafo = list(nos)
+        return self.nos_do_grafo
 
-        Args:
-            no (str): O nó (cidade) para o qual se quer obter os vizinhos.
+    def vizinhos(self, no_atual):
+        """ Retorna os vizinhos de um nó. """
+        # Esta operação é O(E) e será o gargalo no Dijkstra para esta estrutura.
+        viz = []
+        for origem_aresta, destino_aresta, peso_aresta in self.arestas:
+            if origem_aresta == no_atual:
+                viz.append((destino_aresta, peso_aresta))
+            # Não precisa checar 'elif destino_aresta == no_atual' se as arestas
+            # já são adicionadas bidirecionalmente e 'self.arestas' contém ambas.
+            # Se 'adicionar_aresta' só adicionasse uma direção e você quisesse
+            # que vizinhos() encontrasse ambas, aí sim. Mas com a atual 'adicionar_aresta',
+            # esta forma é suficiente, embora ainda O(E).
+        return viz
 
-        Returns:
-            list: Lista de tuplas (vizinho, peso) que representam as cidades vizinhas.
-        """
-        return [(destino, peso) for (origem, destino, peso) in self.arestas if origem == no]
+    def dijkstra(self, origem_str: str):
+        nos = self._atualizar_nos()
+        if origem_str not in nos:
+            dist_vazias = {n: float('inf') for n in nos}
+            ant_vazios = {n: None for n in nos}
+            return dist_vazias, ant_vazios
 
-    def obter_nos(self):
-        """
-        Retorna a lista de nós (cidades) do grafo, sem repetições.
+        distancias = {n: float('inf') for n in nos}
+        anterior = {n: None for n in nos}
+        distancias[origem_str] = 0
 
-        Returns:
-            list: Lista de nós.
-        """
-        return list(set(origem for origem, destino, peso in self.arestas) | set(destino for origem, destino, peso in self.arestas))
+        if self.tipo_fila_dijkstra == 'heap':
+            pq = [(0, origem_str)]  # (distancia, vertice)
+            while pq:
+                dist_u, u = heapq.heappop(pq)
 
-    def dijkstra(self, origem):
-        """
-        Executa o algoritmo de Dijkstra para encontrar o menor caminho de uma cidade origem até todas as outras.
+                if dist_u > distancias[u]:
+                    continue
 
-        Args:
-            origem (str): Cidade de origem.
+                for vizinho, peso in self.vizinhos(u): # self.vizinhos() é O(E)
+                    if distancias[u] + peso < distancias[vizinho]:
+                        distancias[vizinho] = distancias[u] + peso
+                        anterior[vizinho] = u
+                        heapq.heappush(pq, (distancias[vizinho], vizinho))
+        
+        elif self.tipo_fila_dijkstra == 'lista':
+            visitados = set()
+            for _ in range(len(nos)):
+                min_dist_atual = float('inf')
+                u = None
+                for no_iter in nos:
+                    if no_iter not in visitados and distancias[no_iter] < min_dist_atual:
+                        min_dist_atual = distancias[no_iter]
+                        u = no_iter
+                
+                if u is None:
+                    break 
+                
+                visitados.add(u)
 
-        Returns:
-            tuple:
-                dict: Mapeamento de cidades para suas menores distâncias desde a origem.
-                dict: Mapeamento de cada cidade para seu antecessor no caminho mais curto.
-        """
-        distancias = {no: float('inf') for no in self.obter_nos()}
-        distancias[origem] = 0
-        anterior = {no: None for no in self.obter_nos()}
-
-        fila = [(0, origem)]
-        while fila:
-            dist_atual, atual = heapq.heappop(fila)
-            if dist_atual > distancias[atual]:
-                continue
-            for vizinho, peso in self.vizinhos(atual):
-                nova_dist = dist_atual + peso
-                if nova_dist < distancias[vizinho]:
-                    distancias[vizinho] = nova_dist
-                    anterior[vizinho] = atual
-                    heapq.heappush(fila, (nova_dist, vizinho))
-
+                for vizinho, peso in self.vizinhos(u): # self.vizinhos() é O(E)
+                    if distancias[u] + peso < distancias[vizinho]:
+                        distancias[vizinho] = distancias[u] + peso
+                        anterior[vizinho] = u
+        else:
+            raise NotImplementedError(f"Tipo de fila {self.tipo_fila_dijkstra} não implementado.")
+            
         return distancias, anterior
 
-    def caminho_mais_curto(self, origem, destino):
-        """
-        Encontra o caminho mais curto entre duas cidades utilizando Dijkstra.
-
-        Args:
-            origem (str): Cidade de origem.
-            destino (str): Cidade de destino.
-
-        Returns:
-            tuple:
-                list: Caminho mais curto como lista de cidades.
-                float: Distância total do caminho.
-        """
+    def caminho_mais_curto(self, origem: str, destino: str):
         distancias, anterior = self.dijkstra(origem)
+
+        # Verificar se o destino é alcançável
+        if distancias.get(destino, float('inf')) == float('inf'):
+            return None, float('inf')
+
         caminho = []
         atual = destino
-        while atual is not None:
+        # Loop de segurança para evitar ciclos infinitos se 'anterior' estiver malformado
+        for _ in range(len(self.nos_do_grafo) + 1 if self.nos_do_grafo else 1): 
+            if atual is None:
+                # Chegou ao fim da cadeia de predecessores sem encontrar a origem
+                return None, float('inf') # Caminho quebrado
+            
             caminho.insert(0, atual)
-            atual = anterior[atual]
+            if atual == origem:
+                break # Caminho encontrado
+            atual = anterior.get(atual) # Usar .get para segurança
+        else: 
+            # Se o loop for..else for completado sem break (caminho muito longo ou ciclo)
+            return None, float('inf') # Caminho não encontrado ou inválido
+
+        # Validação final
+        if not caminho or caminho[0] != origem:
+            return None, float('inf') 
+            
         return caminho, distancias[destino]
 
     def __repr__(self):
-        return f"GrafoListaArestas com {len(self.obter_nos())} nós"
-
+        # Chama _atualizar_nos para garantir que self.nos_do_grafo esteja disponível
+        num_nos_display = len(self._atualizar_nos()) if self.nos_do_grafo is not None else "N/A (chame _atualizar_nos)"
+        return f"GrafoListaArestas com {num_nos_display} nós (Fila Dijkstra: {self.tipo_fila_dijkstra})"

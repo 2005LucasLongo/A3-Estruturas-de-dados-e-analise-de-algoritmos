@@ -1,14 +1,17 @@
 import heapq
 
-class GrafoListaAdjacenceia:
+class GrafoListaAdjacencia:
     """
     Representa um grafo não direcionado onde os vértices são cidades e as arestas representam estradas com distâncias associadas.
     """
-    def __init__(self):
+    def __init__(self, tipo_fila_dijkstra='heap'):
         """
         Inicializa um grafo vazio com um dicionário de adjacência.
         """
         self.vertices = {}  # {cidade: [(vizinho, distancia)]}
+        self.tipo_fila_dijkstra = tipo_fila_dijkstra.lower()
+        if self.tipo_fila_dijkstra not in ['heap', 'lista']:
+            raise ValueError("tipo_fila_dijkstra deve ser 'heap' ou 'lista'")
 
     def adicionar_aresta(self, origem, destino, distancia):
         """
@@ -23,10 +26,15 @@ class GrafoListaAdjacenceia:
             self.vertices[origem] = []
         if destino not in self.vertices:
             self.vertices[destino] = []
-        self.vertices[origem].append((destino, distancia))
-        self.vertices[destino].append((origem, distancia))  # Se for bidirecional
+        
+        # Evitar adicionar arestas duplicadas na lista de adjacência
+        # (Se o mapa_logistico já garante arestas únicas, esta checagem é opcional mas segura)
+        if not any(v == destino for v, d in self.vertices[origem]):
+            self.vertices[origem].append((destino, distancia))
+        if not any(v == origem for v, d in self.vertices[destino]):
+            self.vertices[destino].append((origem, distancia))
 
-    def dijkstra(self, origem):
+    def dijkstra(self, origem_str: str):
         """
         Executa o algoritmo de Dijkstra para encontrar o menor caminho de uma cidade origem até todas as outras.
 
@@ -39,28 +47,61 @@ class GrafoListaAdjacenceia:
                 dict: Mapeamento de cada cidade para seu antecessor no caminho mais curto.
         """
 
-        if origem not in self.vertices:
-            raise ValueError(f"Cidade '{origem}' não existe no grafo.")
-            
+        if origem_str not in self.vertices:
+            # Retornar um formato que caminho_mais_curto possa interpretar como falha
+            # Por exemplo, um dicionário de distâncias onde todas são infinitas
+            dist_vazias = {v: float('inf') for v in self.vertices}
+            ant_vazios = {v: None for v in self.vertices}
+            if self.vertices: # Se o grafo não está totalmente vazio
+                 if origem_str in dist_vazias: dist_vazias[origem_str] = float('inf') # Garante que é inf se não for um nó válido
+            return dist_vazias, ant_vazios
+
+
         distancias = {v: float('inf') for v in self.vertices}
-        distancias[origem] = 0
         anterior = {v: None for v in self.vertices}
+        distancias[origem_str] = 0
 
-        fila = [(0, origem)]
-        while fila:
-            dist_atual, atual = heapq.heappop(fila)
-            if dist_atual > distancias[atual]:
-                continue
-            for vizinho, peso in self.vertices[atual]:
-                nova_dist = dist_atual + peso
-                if nova_dist < distancias[vizinho]:
-                    distancias[vizinho] = nova_dist
-                    anterior[vizinho] = atual
-                    heapq.heappush(fila, (nova_dist, vizinho))
+        if self.tipo_fila_dijkstra == 'heap':
+            pq = [(0, origem_str)]  # (distancia, vertice)
+            while pq:
+                dist_u, u = heapq.heappop(pq)
 
+                if dist_u > distancias[u]:
+                    continue
+
+                for vizinho, peso in self.vertices.get(u, []):
+                    if distancias[u] + peso < distancias[vizinho]:
+                        distancias[vizinho] = distancias[u] + peso
+                        anterior[vizinho] = u
+                        heapq.heappush(pq, (distancias[vizinho], vizinho))
+        
+        elif self.tipo_fila_dijkstra == 'lista':
+            visitados = set()
+            num_total_vertices = len(self.vertices)
+            for _ in range(num_total_vertices):
+                min_dist_atual = float('inf')
+                u = None
+                # Encontrar o nó não visitado com menor distância
+                for vertice_iter in self.vertices:
+                    if vertice_iter not in visitados and distancias[vertice_iter] < min_dist_atual:
+                        min_dist_atual = distancias[vertice_iter]
+                        u = vertice_iter
+                
+                if u is None: # Nenhum nó alcançável restante ou todos visitados
+                    break 
+                
+                visitados.add(u)
+
+                for vizinho, peso in self.vertices.get(u, []):
+                    if distancias[u] + peso < distancias[vizinho]:
+                        distancias[vizinho] = distancias[u] + peso
+                        anterior[vizinho] = u
+        else: # Deveria ter sido pego no __init__
+            raise ValueError(f"Tipo de fila Dijkstra desconhecido: {self.tipo_fila_dijkstra}")
+            
         return distancias, anterior
 
-    def caminho_mais_curto(self, origem, destino):
+    def caminho_mais_curto(self, origem: str, destino: str):
         """
         Encontra o caminho mais curto entre duas cidades utilizando Dijkstra.
 
@@ -73,12 +114,28 @@ class GrafoListaAdjacenceia:
                 list: Caminho mais curto como lista de cidades.
                 float: Distância total do caminho.
         """
+        if origem not in self.vertices or destino not in self.vertices:
+            return None, float('inf') # Cidades não existem no grafo
+
         distancias, anterior = self.dijkstra(origem)
+
+        if distancias.get(destino, float('inf')) == float('inf'):
+            return None, float('inf')
+
         caminho = []
         atual = destino
         while atual is not None:
             caminho.insert(0, atual)
-            atual = anterior[atual]
+            if atual == origem:
+                break
+            atual = anterior.get(atual) # Usar .get para segurança
+            if atual is None and (not caminho or caminho[0] != origem): # Interrompeu antes de chegar na origem
+                 return None, float('inf') # Caminho quebrado
+        
+        if not caminho or caminho[0] != origem:
+             # Caso especial: origem == destino já tratado por distancias[origem]=0
+            return None, float('inf') # Caminho não pôde ser reconstruído corretamente
+
         return caminho, distancias[destino]
 
     def __repr__(self):
@@ -88,4 +145,4 @@ class GrafoListaAdjacenceia:
         Returns:
             str: Quantidade de cidades no grafo.
         """
-        return f"Grafo com {len(self.vertices)} cidades"
+        return f"GrafoListaAdjacencia com {len(self.vertices)} cidades (Fila Dijkstra: {self.tipo_fila_dijkstra})"

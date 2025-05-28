@@ -28,7 +28,7 @@ def adicionar_frota_padrao(centros: list, qtd_caminhoes: int = 10):
     for centro in centros:
         for j in range(qtd_caminhoes):
             placa = f"{centro.cidade[:2]}-{j+1}"
-            caminhao = Caminhao(placa, capacidade_kg=randint(1000, 10000), horas_disponiveis=randint(8, 20), centro_origem=centro.cidade)
+            caminhao = Caminhao(placa, capacidade_kg=randint(1000, 10000), horas_disponiveis_dia=randint(8, 24), centro_origem=centro)
             centro.adicionar_caminhao(caminhao)
 
 def preparar_centros_com_frota(qtd_caminhoes_por_centro=10) -> list:
@@ -51,70 +51,63 @@ def obter_estrutura_mapa():
 
     centros = criar_centros_distribuicao()
 
-    arestas_base  = [
+    arestas  = [
         # Região Norte
-        ("Rio Branco", "Porto Velho", 5),
-        ("Porto Velho", "Manaus", 8),
-        ("Manaus", "Boa Vista", 6),
-        ("Manaus", "Macapá", 10),
-        ("Macapá", "Belém", 6),
+        ("Rio Branco", "Porto Velho", 11.5),
+        ("Porto Velho", "Manaus", 48),   
+        ("Manaus", "Boa Vista", 17.5),
+        ("Manaus", "Macapá", 72),       
+        ("Macapá", "Belém", 36),      
 
         # Região Nordeste
-        ("São Luís", "Teresina", 4),
-        ("Teresina", "Fortaleza", 6),
-        ("Fortaleza", "Natal", 4),
-        ("Natal", "João Pessoa", 2),
-        ("João Pessoa", "Recife", 2),
-        ("Recife", "Maceió", 3),
-        ("Maceió", "Aracaju", 3),
-        ("Aracaju", "Salvador", 4),
+        ("São Luís", "Teresina", 9.5),
+        ("Teresina", "Fortaleza", 15),
+        ("Fortaleza", "Natal", 11.5),
+        ("Natal", "João Pessoa", 4),
+        ("João Pessoa", "Recife", 2.5),
+        ("Recife", "Maceió", 5),
+        ("Maceió", "Aracaju", 5.5),
+        ("Aracaju", "Salvador", 7),
 
         # Conexões Norte/Nordeste/Centro-Oeste
-        ("Belém", "Palmas", 10),
-        ("Palmas", "Brasília", 6),
-        ("São Luís", "Palmas", 8),
-        ("Salvador", "Brasília", 7),
-        ("Fortaleza", "Brasília", 12),
+        ("Belém", "Palmas", 28),
+        ("Palmas", "Brasília", 19),
+        ("São Luís", "Palmas", 24.5),
+        ("Salvador", "Brasília", 34),
+        ("Fortaleza", "Brasília", 51.5),
 
         # Região Centro-Oeste
-        ("Brasília", "Goiânia", 2),
-        ("Goiânia", "Cuiabá", 7),
-        ("Cuiabá", "Campo Grande", 5),
-        ("Campo Grande", "Brasília", 8),
+        ("Brasília", "Goiânia", 4),
+        ("Goiânia", "Cuiabá", 21),
+        ("Cuiabá", "Campo Grande", 16.5),
+        ("Campo Grande", "Brasília", 24.5),
 
         # Região Sudeste
-        ("Brasília", "Belo Horizonte", 5),
-        ("Belo Horizonte", "Rio de Janeiro", 5),
-        ("Belo Horizonte", "Vitória", 4),
-        ("Rio de Janeiro", "Vitória", 6),
-        ("Rio de Janeiro", "São Paulo", 4),
+        ("Brasília", "Belo Horizonte", 17.5),
+        ("Belo Horizonte", "Rio de Janeiro", 9.5),
+        ("Belo Horizonte", "Vitória", 11.5),
+        ("Rio de Janeiro", "Vitória", 11.5),
+        ("Rio de Janeiro", "São Paulo", 9.5),
 
         # Região Sul
-        ("São Paulo", "Curitiba", 4),
-        ("Curitiba", "Florianópolis", 3),
-        ("Florianópolis", "Porto Alegre", 5),
+        ("São Paulo", "Curitiba", 9),
+        ("Curitiba", "Florianópolis", 6),
+        ("Florianópolis", "Porto Alegre", 10.5),
 
         # Conexões Sudeste/Centro-Oeste/Sul
-        ("São Paulo", "Campo Grande", 6),
-        ("São Paulo", "Goiânia", 5),
+        ("São Paulo", "Campo Grande", 23.5),
+        ("São Paulo", "Goiânia", 21),
 
         # Extras para garantir múltiplos caminhos
-        ("Manaus", "Belém", 10),
-        ("Boa Vista", "Macapá", 10),
-        ("Cuiabá", "Porto Velho", 6),
-        ("Porto Alegre", "Campo Grande", 7),
-        ("Palmas", "Cuiabá", 9),
-        ("Vitória", "Salvador", 7),
-        ("São Luís", "Belém", 6),
-        ("Aracaju", "Recife", 5)
+        ("Manaus", "Belém", 96),         
+        ("Boa Vista", "Macapá", 120),    
+        ("Cuiabá", "Porto Velho", 34),
+        ("Porto Alegre", "Campo Grande", 33),
+        ("Palmas", "Cuiabá", 41),
+        ("Vitória", "Salvador", 28),
+        ("São Luís", "Belém", 19),
+        ("Aracaju", "Recife", 11.5)
     ]
-
-     # Garante bidirecionalidade (duas vias)
-    arestas = []
-    for origem, destino, peso in arestas_base:
-        arestas.append((origem, destino, peso))
-        arestas.append((destino, origem, peso))
-
 
     destinos = [
         "Aracaju", "Belém", "Belo Horizonte", "Boa Vista", "Brasília",

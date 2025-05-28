@@ -130,12 +130,12 @@ if __name__ == "__main__":
         try:
             # Importa os módulos após garantir que as dependências estão instaladas
             from view.simulador import simular
-            from testes.comparador_testes import comparar_algoritmos
+            from testes.comparador_testes import comparar_algoritmos_estruturas
 
             print("🚀 Executando o programa. Por favor, aguarde...\n")
             time.sleep(1)
             simular()
-            comparar_algoritmos()
+            # comparar_algoritmos_estruturas()
             input("\n✅ Execução concluída. Pressione Enter para sair...")
 
         except Exception as e:
