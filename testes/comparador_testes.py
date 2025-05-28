@@ -195,7 +195,7 @@ def executar_testes_em_lote(configuracoes_para_teste: list,
         set_cidades_mapa.add(dest_entrega_mapa)
     todas_cidades_mapa_lista = sorted(list(set_cidades_mapa))
 
-    resultados_gerais = []
+    resultados_gerais_brutos = []
     print("🔍 Comparando desempenho dos algoritmos de roteirização:\n")
 
     for qtd_entregas_teste in quantidades_entregas:
@@ -220,29 +220,43 @@ def executar_testes_em_lote(configuracoes_para_teste: list,
                     todas_cidades_mapa=todas_cidades_mapa_lista,
                     mostrar_erros=False # Mantenha False para medição de desempenho
                 )
-                resultados_gerais.append([
-                    resultado_individual["estrutura"],
-                    resultado_individual["qtd_entregas"],
-                    f"{resultado_individual['tempo']:.4f}",
-                    f"{resultado_individual['memoria_pico_kb']:.2f}",
-                    resultado_individual["sucessos"],
-                    resultado_individual["erros"]
-                ])
+                resultados_gerais_brutos.append(resultado_individual)
                 print(f"    Tempo: {resultado_individual['tempo']:.4f}s, Memória Pico: {resultado_individual['memoria_pico_kb']:.2f}KB")
             except Exception as e:
                 print(f"❌ Erro ao executar {config_atual['nome_estrutura']} com {qtd_entregas_teste} entregas: {e}")
                 import traceback
                 traceback.print_exc()
-                resultados_gerais.append([config_atual['nome_estrutura'], qtd_entregas_teste, "ERRO", "ERRO", "ERRO", "ERRO"])
+                resultados_gerais_brutos.append({ # Adiciona um placeholder de erro
+                    "estrutura": config_atual['nome_estrutura'],
+                    "qtd_entregas": qtd_entregas_teste,
+                    "tempo": -1.0, # Indicador de erro
+                    "memoria_pico_kb": -1.0, # Indicador de erro
+                    "sucessos": -1,
+                    "erros": -1
+                })
             print()
-    return resultados_gerais
+    return resultados_gerais_brutos 
 
 # 4. Função para Exibir Resultados (Pode permanecer a mesma)
-def exibir_resultados_tabulados(resultados_lista_de_listas):
+def formatar_para_tabulate(resultados_brutos: list[dict]) -> list[list]:
+    """Converte a lista de dicionários de resultados brutos para o formato de lista de listas para tabulate."""
+    dados_formatados = []
+    for res_dict in resultados_brutos:
+        dados_formatados.append([
+            res_dict["estrutura"],
+            res_dict["qtd_entregas"],
+            f"{res_dict['tempo']:.4f}" if res_dict['tempo'] >= 0 else "ERRO",
+            f"{res_dict['memoria_pico_kb']:.2f}" if res_dict['memoria_pico_kb'] >= 0 else "ERRO",
+            res_dict["sucessos"] if res_dict['sucessos'] >= 0 else "ERRO",
+            res_dict["erros"] if res_dict['erros'] >= 0 else "ERRO"
+        ])
+    return dados_formatados
+
+def exibir_resultados_tabulados(resultados_brutos: list[dict]): # Agora recebe dados brutos
     headers = ["Estrutura", "Nº Entregas", "Tempo (s)", "Memória Pico (KB)", "Sucessos", "Erros"]
+    dados_para_tabela = formatar_para_tabulate(resultados_brutos) # Formata aqui
     print("\n📊 Resultados Comparativos Consolidados:")
-    print(tabulate(resultados_lista_de_listas, headers=headers, tablefmt="fancy_grid"))
-    # O sleep(2) foi removido da sua versão anterior, pode ser omitido ou adicionado se desejado.
+    print(tabulate(dados_para_tabela, headers=headers, tablefmt="fancy_grid"))
 
 # 5. Função Principal para Orquestrar a Comparação (Modificada)
 def comparar_algoritmos_estruturas():
@@ -258,14 +272,16 @@ def comparar_algoritmos_estruturas():
     import random
     random.seed(42) # Seed para reprodutibilidade da geração de dados
 
-    resultados_compilados = executar_testes_em_lote(
-        configs_de_teste, 
+    resultados_brutos_compilados = executar_testes_em_lote(
+        configs_de_teste,
         quantidades_entregas_cenarios,
         numero_caminhoes_por_cd_teste
     )
     
-    if resultados_compilados:
-        exibir_resultados_tabulados(resultados_compilados)
+    if resultados_brutos_compilados:
+        exibir_resultados_tabulados(resultados_brutos_compilados)
+    
+    return resultados_brutos_compilados
 
 if __name__ == "__main__":
     comparar_algoritmos_estruturas()
