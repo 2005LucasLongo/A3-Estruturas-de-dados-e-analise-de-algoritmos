@@ -18,7 +18,7 @@ def carregar_dependencias():
             for linha in linhas:
                 linha = linha.strip()
                 if linha and not linha.startswith("#"):
-                    nome = linha.split("==")[0].strip()
+                    nome = linha.split(">=")[0].strip()
                     pacotes.append(nome)
             return pacotes
     except Exception as e:
