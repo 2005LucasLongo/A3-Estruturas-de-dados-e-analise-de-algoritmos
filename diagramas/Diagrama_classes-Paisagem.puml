@@ -1,0 +1,120 @@
+@startuml
+left to right direction
+skinparam backgroundColor Transparent
+
+' Definindo o estilo (opcional, para melhor aparência)
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam class {
+    BackgroundColor Light 과정
+    ArrowColor Black
+    BorderColor Black
+}
+skinparam note {
+    BackgroundColor LightYellow
+    BorderColor Black
+}
+
+' Definindo as classes
+class Entrega {
+    +id: str
+    +destino: str
+    +peso: float
+    +prazo: float
+    +origem: str {opcional}
+    +__repr__(): str
+}
+
+class Caminhao {
+    +id: str
+    +capacidade_kg_total: float
+    +capacidade_kg_usada: float
+    +horas_operacao_maximas_dia: float
+    +tempo_rota_atual: float
+    +centro_origem: CentroDistribuicao
+    +entregas: List<Entrega>
+    +rota: List<str>
+    __
+    +adicionar_entrega_a_lista(entrega: Entrega): void
+    +remover_entrega_da_lista(entrega: Entrega): void
+    +atualizar_rota_e_tempo(nova_rota: List<str>, tempo_total: float): void
+    +pode_adicionar_carga(peso_adicional: float): bool
+    +<<property>> capacidade_kg_disponivel: float
+    +<<property>> horas_disponiveis_para_rota: float
+    +__repr__(): str
+}
+
+class CentroDistribuicao {
+    +cidade: str
+    +caminhoes: List<Caminhao>
+    __
+    +adicionar_caminhao(caminhao: Caminhao): void
+    +__repr__(): str
+}
+
+' Representando a implementação principal do Grafo (Lista de Adjacência)
+class GrafoListaAdjacencia {
+    #vertices: Dict<str, List<Tuple<str, float>>>
+    #tipo_fila_dijkstra: str
+    __
+    +__init__(tipo_fila_dijkstra: str = "heap")
+    +adicionar_aresta(origem: str, destino: str, peso: float): void
+    #dijkstra(origem: str): Tuple[Dict, Dict]
+    +caminho_mais_curto(origem: str, destino: str): Tuple[List, float]
+    +__repr__(): str
+}
+note right of GrafoListaAdjacencia
+  Outras implementações de grafo (Matriz de Adjacência,
+  Lista de Arestas, Dicionário de Dicionários,
+  Grafo com Objetos, NetworkX) foram desenvolvidas
+  para comparação, seguindo uma interface similar
+  para 'caminho_mais_curto'.
+end note
+
+class Roteirizador {
+    -centros: List<CentroDistribuicao>
+    -entregas: List<Entrega>
+    -grafo: GrafoListaAdjacencia 'ou outra interface Grafo
+    __
+    +__init__(centros, entregas, grafo)
+    +alocar_entregas(): List<Dict>
+    -centro_mais_proximo(destino: str): Tuple[CentroDistribuicao, float]
+    -_calcular_melhor_rota_para_destinos(...): Tuple
+    -_verificar_prazos_para_rota(...): bool
+}
+
+class Simulador {
+    ' Atributos podem ser omitidos se for principalmente funcional
+    __
+    +simular_cenario_completo(): void ' Nome mais descritivo
+}
+note left of Simulador
+  Responsável por configurar
+  e executar a simulação,
+  utilizando o Roteirizador
+  e exibindo resultados.
+end note
+
+' Relacionamentos entre as classes
+CentroDistribuicao "1" o--> "0..*" Caminhao : possui
+note on link: Um Centro de Distribuição pode ter zero ou mais caminhões.
+
+Caminhao "1" o--> "0..*" Entrega : transporta
+note on link: Um Caminhão pode transportar zero ou mais entregas.
+
+Caminhao "1" -- "1" CentroDistribuicao : origina-se de / pertence a
+note on link: Cada Caminhão está vinculado a um Centro de Distribuição de origem.
+
+
+Roteirizador ..> CentroDistribuicao : utiliza
+Roteirizador ..> Entrega : processa
+Roteirizador ..> GrafoListaAdjacencia : utiliza
+
+Simulador ..> Roteirizador : executa
+
+' O Grafo contém informações sobre cidades, que podem ser Centros de Distribuição ou destinos.
+' Essa relação é mais indireta e coberta pelo uso do Grafo pelo Roteirizador.
+
+@enduml

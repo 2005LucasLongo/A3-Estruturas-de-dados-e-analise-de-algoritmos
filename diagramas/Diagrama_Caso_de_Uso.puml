@@ -1,0 +1,68 @@
+@startuml
+left to right direction
+
+actor "Operador de Logística" as Operador
+
+rectangle "Sistema de Otimização de Rotas" {
+  Operador -- (Definir Parâmetros da Operação)
+  (Definir Parâmetros da Operação) .> (Especificar Entregas) : <<include>>
+  (Definir Parâmetros da Operação) .> (Configurar Frota de Caminhões) : <<include>>
+  (Definir Parâmetros da Operação) .> (Carregar Mapa Logístico) : <<include>>
+  note right of (Definir Parâmetros da Operação)
+    Na implementação atual, muitos desses
+    parâmetros são definidos programaticamente
+    ou gerados (ex: `mapa_logistico.py`, `gerador_entregas.py`).
+    A definição aqui representa a interação ideal
+    com o sistema ou para futuras interfaces.
+  end note
+
+  Operador -- (Executar Otimização de Rotas)
+  note right of (Executar Otimização de Rotas)
+    Dispara o processo principal
+    do Roteirizador para alocar
+    entregas e calcular rotas.
+  end note
+
+  (Executar Otimização de Rotas) --> (Visualizar Resultados da Roteirização)
+
+  (Visualizar Resultados da Roteirização) -- Operador
+  (Visualizar Resultados da Roteirização) .> (Consultar Rotas por Caminhão) : <<extend>>
+  (Visualizar Resultados da Roteirização) .> (Listar Entregas Não Alocadas) : <<extend>>
+  note left of (Visualizar Resultados da Roteirização)
+    Atualmente, a visualização principal
+    ocorre via console (`simulador.py`).
+  end note
+
+  ' Casos de uso internos que são parte da "Executar Otimização de Rotas"
+  ' e não diretamente chamados pelo ator, mas importantes para a funcionalidade.
+  ' Poderiam ser modelados como parte de um diagrama de atividades ou sequência.
+  (Executar Otimização de Rotas) ..> (Identificar Centro de Distribuição de Referência) : <<include>>
+  (Executar Otimização de Rotas) ..> (Avaliar Caminhões e Otimizar Rotas Individuais) : <<include>>
+  (Avaliar Caminhões e Otimizar Rotas Individuais) ..> (Verificar Restrições do Veículo) : <<include>>
+  (Avaliar Caminhões e Otimizar Rotas Individuais) ..> (Verificar Prazos de Entrega) : <<include>>
+  (Avaliar Caminhões e Otimizar Rotas Individuais) ..> (Calcular Caminho Mínimo com Dijkstra) : <<include>>
+
+}
+
+' Caso de Uso para a Análise de Desempenho (realizado pelo Desenvolvedor/Analista do Projeto)
+' Podemos criar um ator separado para isso, se quiser destacar no diagrama.
+actor "Desenvolvedor/Analista" as Dev
+
+rectangle "Ferramentas de Análise do Projeto" {
+  Dev -- (Comparar Desempenho de Estruturas de Grafo)
+  (Comparar Desempenho de Estruturas de Grafo) .> (Executar Testes em Lote) : <<include>>
+  (Comparar Desempenho de Estruturas de Grafo) .> (Gerar Gráficos de Performance) : <<include>>
+  note right of (Comparar Desempenho de Estruturas de Grafo)
+    Refere-se à execução do `comparador_testes.py`
+    e `gerar_graficos_finais.py` para a Parte 3
+    do trabalho (Avaliação de Desempenho).
+  end note
+}
+
+' O Operador de Logística é o principal usuário do *sistema de roteirização*.
+' O Desenvolvedor/Analista é o principal usuário das *ferramentas de teste e análise do projeto*.
+' Se o diagrama de caso de uso for estritamente para o sistema de roteirização em si,
+' a parte do "Desenvolvedor/Analista" pode ser omitida ou apresentada separadamente.
+' Para um relatório de projeto acadêmico, mostrar ambos pode ser relevante.
+
+@enduml
